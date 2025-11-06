@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mock Test — Benchmark Master</title>
+  <style>
+    :root{
+      --green:#00723f;
+      --bg:#071018;
+      --card:#0f1720;
+      --muted:#98a0a6;
+      --white:#eef2f3;
+      --accent:#123827;
+      --radius:12px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#071018 0%, #0d1114 100%);
+      color:var(--white);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{ max-width:1100px; margin:28px auto; padding:24px; }
+    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    h1{ margin:0; font-size:20px; }
+    p.lead{ margin:6px 0 0 0; color:var(--muted); font-size:14px; max-width:900px; }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);
+      padding:18px;
+      margin-bottom:18px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.45);
+    }
+
+    .row{ display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
+    .col{ flex:1 1 300px; }
+
+    /* controls */
+    .btn{
+      background:var(--green);
+      color:#fff;
+      border:0;
+      padding:10px 14px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.08);
+      color:var(--white);
+    }
+    label{ display:block; margin-bottom:6px; font-weight:600; color:var(--muted); font-size:13px; }
+
+    /* writing */
+    textarea{
+      width:100%;
+      min-height:160px;
+      padding:12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      color:var(--white);
+      resize:vertical;
+      font-size:14px;
+    }
+
+    /* grammar questions */
+    .mcq{ margin-bottom:12px; padding:12px; border-radius:8px; background:rgba(255,255,255,0.02); }
+    .mcq h4{ margin:0 0 8px 0; font-size:15px; }
+    .mcq .choice{ display:block; margin:6px 0; padding:8px; border-radius:6px; cursor:pointer; border:1px solid rgba(255,255,255,0.02); }
+    .mcq .choice input{ margin-right:10px; }
+
+    .result-ok{ color:#b6ffcf; font-weight:700; }
+    .result-bad{ color:#ff9b9b; font-weight:700; }
+
+    /* speaking */
+    .rec-controls{ display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+    .meter{ height:6px; background:rgba(255,255,255,0.04); border-radius:6px; overflow:hidden; width:160px; }
+    .meter > i{ display:block; height:100%; background:linear-gradient(90deg,#43e175,#0b8a53); width:0%; }
+
+    /* listening */
+    .file-input{ color:var(--muted); font-size:14px; }
+
+    /* summary */
+    .summary{ padding:12px; border-radius:8px; background:rgba(255,255,255,0.02); margin-top:12px; }
+    small.hint{ color:var(--muted); display:block; margin-top:8px; }
+
+    footer{ margin-top:22px; color:var(--muted); font-size:13px; text-align:center; }
+    @media (max-width:800px){
+      header{ flex-direction:column; align-items:flex-start; gap:6px; }
+      .row{ flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Mock Test — Benchmark Master</h1>
+        <p class="lead">Prueba combinada: Writing, Grammar, Speaking y Listening. Esta página te da retroalimentación automática básica para grammar y writing; speaking y listening incluyen métricas y ayuda para la entrega.</p>
+      </div>
+      <div>
+        <a class="btn" href="index.html" title="Volver">Volver</a>
+      </div>
+    </header>
+
+    <!-- WRITING -->
+    <section id="writing" class="card" aria-labelledby="writingTitle">
+      <h2 id="writingTitle">Writing — Tarea</h2>
+      <p class="lead">Instrucciones: Escribe un texto (120-200 palabras) respondiendo la pregunta. Se evaluará longitud y presencia de palabras clave.</p>
+
+      <label for="prompt">Prompt</label>
+      <div class="card" style="background:rgba(255,255,255,0.01); margin-bottom:12px;">
+        <strong>Prompt:</strong>
+        <p style="margin:8px 0 0 0; color:var(--muted)">Describe tus estrategias para prepararte para un examen de certificación internacional (p. ej. Benchmark Exam). ¿Qué técnicas usas para gestionar el tiempo y controlar la ansiedad?</p>
+      </div>
+
+      <label for="answer">Tu respuesta</label>
+      <textarea id="answer" placeholder="Escribe aquí tu respuesta..."></textarea>
+
+      <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+        <button id="checkWriting" class="btn">Comprobar Writing</button>
+        <button id="downloadWriting" class="btn ghost" title="Descargar respuesta">Descargar .txt</button>
+        <div id="writingInfo" style="margin-left:auto; color:var(--muted)"></div>
+      </div>
+
+      <div id="writingFeedback" class="summary" style="display:none; margin-top:12px;"></div>
+    </section>
+
+    <div class="row">
+      <!-- GRAMMAR -->
+      <section id="grammar" class="card col" aria-labelledby="grammarTitle">
+        <h2 id="grammarTitle">Grammar — Preguntas</h2>
+        <p class="lead">Selecciona la respuesta correcta. Retroalimentación inmediata y puntuación.</p>
+
+        <div id="grammarList"></div>
+        <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+          <button id="gradeGrammar" class="btn">Calificar Grammar</button>
+          <div id="grammarScore" style="margin-left:auto; color:var(--muted)"></div>
+        </div>
+      </section>
+
+      <!-- LISTENING -->
+      <section id="listening" class="card col" aria-labelledby="listeningTitle">
+        <h2 id="listeningTitle">Listening — Archivo y Preguntas</h2>
+        <p class="lead">Sube un audio (mp3/m4a/wav) con el fragmento para escuchar. Luego responde la(s) pregunta(s).</p>
+
+        <label class="file-input">Subir audio de listening
+          <input id="listeningFile" type="file" accept="audio/*" style="display:inline-block; margin-left:8px;">
+        </label>
+
+        <div id="player" style="margin-top:12px; display:none;">
+          <audio id="audio" controls></audio>
+        </div>
+
+        <div id="listeningQ" style="margin-top:12px; display:none;">
+          <div class="mcq">
+            <h4>Pregunta 1: ¿Cuál es la idea principal del audio?</h4>
+            <label class="choice"><input type="radio" name="listen1" value="a"> Opción A</label>
+            <label class="choice"><input type="radio" name="listen1" value="b"> Opción B</label>
+            <label class="choice"><input type="radio" name="listen1" value="c"> Opción C</label>
+          </div>
+          <button id="checkListening" class="btn">Comprobar Listening</button>
+          <div id="listeningFeedback" class="summary" style="display:none;"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SPEAKING -->
+    <section id="speaking" class="card" aria-labelledby="speakingTitle">
+      <h2 id="speakingTitle">Speaking — Graba tu respuesta</h2>
+      <p class="lead">Graba una respuesta oral corta (30–90 s). Se calcula duración y volumen medio como feedback automático; la evaluación de contenido quedará para revisión docente.</p>
+
+      <label for="speakingPrompt">Prompt</label>
+      <div class="card" style="background:rgba(255,255,255,0.01); margin-bottom:12px;">
+        <strong>Prompt:</strong>
+        <p style="margin:8px 0 0 0; color:var(--muted)">Habla durante 60 segundos acerca de las estrategias que sigues para preparar la sección oral de un examen internacional.</p>
+      </div>
+
+      <div class="rec-controls">
+        <button id="startRec" class="btn">Iniciar grabación</button>
+        <button id="stopRec" class="btn ghost" disabled>Detener</button>
+        <button id="downloadRec" class="btn ghost" disabled>Descargar</button>
+        <div style="margin-left:12px; color:var(--muted); font-size:13px;">Duración: <span id="recDuration">0.0</span>s</div>
+        <div class="meter" title="Volumen">
+          <i id="volLevel"></i>
+        </div>
+      </div>
+
+      <div id="recPlayer" style="margin-top:12px; display:none;">
+        <audio id="recAudio" controls></audio>
+        <div id="recFeedback" class="summary" style="margin-top:8px;"></div>
+      </div>
+    </section>
+
+    <footer>
+      Esta herramienta realiza comprobaciones automáticas básicas (palabras clave, conteo, respuestas cerradas, métricas de audio).
+      Para una evaluación de speaking y writing completa recomendamos revisión docente o integrar servicios de IA/ASR si lo deseas más adelante.
+    </footer>
+  </div>
+
+  <script>
+    /************************************************************************
+     * Mock test client-side app
+     * - Grammar: multiple-choice questions, score + explanations
+     * - Writing: check length + keyword presence, produce basic feedback and downloadable .txt
+     * - Listening: accept uploaded audio and show MCQ (correct answer can be configured)
+     * - Speaking: record via MediaRecorder, compute duration and average amplitude (RMS) and allow download
+     *
+     * No external services. Everything runs in the browser.
+     ************************************************************************/
+
+    /* ========== CONFIG ========== */
+    // Grammar questions (you can change text, choices and correct index)
+    const grammarQuestions = [
+      {
+        q: "Choose the correct sentence:",
+        choices: [
+          "She have finished her homework.",
+          "She has finished her homework.",
+          "She had finish her homework."
+        ],
+        correct: 1,
+        explain: "La forma correcta en Present Perfect es 'has finished' con sujeto 'she'."
+      },
+      {
+        q: "Pick the best verb form: 'If I ___ more time, I would practice speaking daily.'",
+        choices: ["has", "have", "had"],
+        correct: 2,
+        explain: "'If I had more time' es la forma correcta para condicional irreal."
+      },
+      {
+        q: "Select the correct preposition: 'She is good ___ listening to lectures.'",
+        choices: ["in", "at", "on"],
+        correct: 1,
+        explain: "'Good at' es la expresión correcta."
+      }
+    ];
+
+    // Listening: the "correct" answers can be set here; since audio is user-uploaded,
+    // set the correct choice for the sample question below (a/b/c). Change later as needed.
+    const listeningAnswers = { q1: "b" };
+
+    // Writing: prompt keywords and recommended word count
+    const writingConfig = {
+      minWords: 120,
+      maxWords: 200,
+      keywords: ["gestionar", "tiempo", "ansiedad", "estrategias", "simulacros"]
+    };
+
+    /* ========== GRAMMAR RENDER ========== */
+    const grammarList = document.getElementById('grammarList');
+    function renderGrammar(){
+      grammarList.innerHTML = '';
+      grammarQuestions.forEach((g, idx) => {
+        const div = document.createElement('div');
+        div.className = 'mcq';
+        div.innerHTML = `<h4>${idx+1}. ${g.q}</h4>`;
+        g.choices.forEach((c, ci) => {
+          const id = `g-${idx}-${ci}`;
+          const label = document.createElement('label');
+          label.className = 'choice';
+          label.innerHTML = `<input type="radio" name="g-${idx}" value="${ci}" id="${id}"> ${c}`;
+          div.appendChild(label);
+        });
+        div.appendChild(document.createElement('div'));
+        grammarList.appendChild(div);
+      });
+    }
+    renderGrammar();
+
+    document.getElementById('gradeGrammar').addEventListener('click', ()=>{
+      let correct = 0;
+      grammarQuestions.forEach((g, idx) => {
+        const sel = document.querySelector(`input[name="g-${idx}"]:checked`);
+        const container = grammarList.children[idx];
+        container.querySelectorAll('.explain')?.forEach(n=>n.remove());
+        const explainEl = document.createElement('div');
+        explainEl.className = 'explain';
+        explainEl.style.marginTop = '8px';
+        if(sel){
+          const val = Number(sel.value);
+          if(val === g.correct){
+            correct++;
+            explainEl.innerHTML = `<div class="result-ok">Correcto ✓</div><small style="color:var(--muted)">${g.explain}</small>`;
+          } else {
+            explainEl.innerHTML = `<div class="result-bad">Incorrecto ✕</div><small style="color:var(--muted)">${g.explain}</small>`;
+          }
+        } else {
+          explainEl.innerHTML = `<div class="result-bad">No respondida</div><small style="color:var(--muted)">${g.explain}</small>`;
+        }
+        container.appendChild(explainEl);
+      });
+      const score = Math.round((correct / grammarQuestions.length) * 100);
+      document.getElementById('grammarScore').textContent = `Puntuación: ${correct}/${grammarQuestions.length} (${score}%)`;
+    });
+
+    /* ========== WRITING CHECK ========== */
+    const answerEl = document.getElementById('answer');
+    const writingFeedback = document.getElementById('writingFeedback');
+    document.getElementById('checkWriting').addEventListener('click', ()=>{
+      const text = answerEl.value.trim();
+      const words = text ? text.split(/\s+/).filter(Boolean) : [];
+      const wordCount = words.length;
+      const sentenceCount = text.split(/[.!?]+/).filter(s => s.trim().length>0).length;
+      // keyword matching (case-insensitive)
+      const found = {};
+      writingConfig.keywords.forEach(k => found[k] = false);
+      const lowered = text.toLowerCase();
+      writingConfig.keywords.forEach(k => {
+        if(lowered.includes(k.toLowerCase())) found[k] = true;
+      });
+      const keywordCount = Object.values(found).filter(Boolean).length;
+      // scoring (simple heuristic)
+      let score = 0;
+      // length score
+      if(wordCount >= writingConfig.minWords && wordCount <= writingConfig.maxWords) score += 60;
+      else if(wordCount >= writingConfig.minWords * 0.7 && wordCount <= writingConfig.maxWords * 1.2) score += 30;
+      // keyword score
+      score += Math.round((keywordCount / writingConfig.keywords.length) * 40);
+      if(score>100) score = 100;
+
+      // suggestions
+      const suggestions = [];
+      if(wordCount < writingConfig.minWords) suggestions.push(`Tu texto es corto: ${wordCount} palabras (se recomiendan al menos ${writingConfig.minWords}).`);
+      if(wordCount > writingConfig.maxWords) suggestions.push(`Tu texto es largo: ${wordCount} palabras (máximo recomendado ${writingConfig.maxWords}).`);
+      const missingKeywords = Object.keys(found).filter(k => !found[k]);
+      if(missingKeywords.length) suggestions.push(`Considera incluir: ${missingKeywords.join(', ')}.`);
+      if(!text) suggestions.push('No se detectó texto. Escribe tu respuesta antes de comprobar.');
+
+      // render feedback
+      writingFeedback.style.display = 'block';
+      writingFeedback.innerHTML = `
+        <strong>Feedback automático — Writing</strong>
+        <div style="margin-top:8px;"><strong>Puntuación estimada:</strong> ${score}/100</div>
+        <div style="margin-top:8px;"><strong>Palabras:</strong> ${wordCount} • <strong>Oraciones (aprox.):</strong> ${sentenceCount}</div>
+        <div style="margin-top:8px;"><strong>Palabras clave encontradas:</strong> ${keywordCount}/${writingConfig.keywords.length} (${Object.keys(found).filter(k=>found[k]).join(', ') || 'Ninguna'})</div>
+        <div style="margin-top:8px;"><strong>Sugerencias:</strong>
+          <ul style="margin-top:6px; color:var(--muted)">${suggestions.length ? suggestions.map(s=>`<li>${s}</li>`).join('') : '<li>Buen trabajo — cumple con la mayoría de criterios automáticos.</li>'}</ul>
+        </div>
+        <small class="hint">Nota: Esta evaluación es automática y limitada (conteo y presencia de palabras). Para evaluación completa de coherencia y gramática se recomienda revisión docente o herramientas avanzadas de IA.</small>
+      `;
+
+      // update info area
+      document.getElementById('writingInfo').textContent = `${wordCount} palabras`;
+    });
+
+    // download writing
+    document.getElementById('downloadWriting').addEventListener('click', ()=>{
+      const text = answerEl.value || '';
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'writing-answer.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    /* ========== LISTENING (upload + question) ========== */
+    const listeningFile = document.getElementById('listeningFile');
+    const playerDiv = document.getElementById('player');
+    const audioEl = document.getElementById('audio');
+    const listeningQ = document.getElementById('listeningQ');
+    listeningFile.addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      const url = URL.createObjectURL(f);
+      audioEl.src = url;
+      playerDiv.style.display = 'block';
+      listeningQ.style.display = 'block';
+      document.getElementById('listeningFeedback').style.display = 'none';
+      // we keep listeningAnswers as configured above
+    });
+
+    document.getElementById('checkListening').addEventListener('click', ()=>{
+      const sel = document.querySelector('input[name="listen1"]:checked');
+      const feedback = document.getElementById('listeningFeedback');
+      feedback.style.display = 'block';
+      if(!sel){
+        feedback.innerHTML = `<div class="result-bad">No respondiste la pregunta.</div><small class="hint">Escucha el audio y selecciona la opción que mejor resume la idea principal.</small>`;
+        return;
+      }
+      if(sel.value === listeningAnswers.q1){
+        feedback.innerHTML = `<div class="result-ok">Correcto ✓</div><small class="hint">Bien hecho.</small>`;
+      } else {
+        feedback.innerHTML = `<div class="result-bad">Incorrecto ✕</div><small class="hint">Respuesta correcta: ${listeningAnswers.q1.toUpperCase()} (configurable en el sistema).</small>`;
+      }
+    });
+
+    /* ========== SPEAKING (record + basic metrics) ========== */
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let startTime = 0;
+    let audioContext = null;
+    let analyserNode = null;
+    let rafId = null;
+
+    const startBtn = document.getElementById('startRec');
+    const stopBtn = document.getElementById('stopRec');
+    const downloadBtn = document.getElementById('downloadRec');
+    const recDurationEl = document.getElementById('recDuration');
+    const volLevel = document.getElementById('volLevel');
+    const recPlayer = document.getElementById('recPlayer');
+    const recAudio = document.getElementById('recAudio');
+    const recFeedback = document.getElementById('recFeedback');
+
+    startBtn.addEventListener('click', async ()=>{
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        alert('Tu navegador no soporta grabación de audio.');
+        return;
+      }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(recordedChunks, { type: recordedChunks[0]?.type || 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          recAudio.src = url;
+          recPlayer.style.display = 'block';
+          downloadBtn.disabled = false;
+          // compute metrics (duration + RMS)
+          const arrayBuf = await blob.arrayBuffer();
+          if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          try{
+            const buffer = await audioContext.decodeAudioData(arrayBuf.slice(0));
+            const channelData = buffer.getChannelData(0);
+            const duration = buffer.duration;
+            const rms = calcRMS(channelData);
+            recFeedback.innerHTML = `
+              <strong>Feedback automático — Speaking</strong>
+              <div style="margin-top:8px;">Duración (s): <strong>${duration.toFixed(2)}</strong></div>
+              <div style="margin-top:6px;">Volumen medio (RMS): <strong>${rms.toFixed(4)}</strong></div>
+              <small class="hint">Duración y RMS son métricas objetivas. Para evaluar pronunciación y fluidez es necesaria revisión docente o integración ASR/IA.</small>
+            `;
+          }catch(err){
+            recFeedback.innerHTML = `<div class="result-bad">No se pudieron calcular métricas de audio.</div>`;
+          }
+        };
+        mediaRecorder.start();
+        startTime = Date.now();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        downloadBtn.disabled = true;
+        recPlayer.style.display = 'none';
+        recFeedback.innerHTML = '';
+        // visualize volume using AnalyserNode
+        if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;
+        source.connect(analyserNode);
+        updateMeter();
+      }catch(err){
+        console.error(err);
+        alert('No fue posible acceder al micrófono: ' + (err.message || err));
+      }
+    });
+
+    stopBtn.addEventListener('click', ()=>{
+      if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      // stop visualizer
+      if(rafId) cancelAnimationFrame(rafId);
+      // compute duration from chunks if possible:
+      let dur = ((Date.now() - startTime)/1000);
+      recDurationEl.textContent = dur.toFixed(1);
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    });
+
+    downloadBtn.addEventListener('click', ()=>{
+      if(recordedChunks.length === 0) return;
+      const blob = new Blob(recordedChunks, { type: recordedChunks[0].type });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'speaking-response.webm';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    function updateMeter(){
+      const bufferLength = analyserNode.frequencyBinCount;
+      const data = new Uint8Array(bufferLength);
+      analyserNode.getByteTimeDomainData(data);
+      // convert to RMS-like value
+      let sum = 0;
+      for(let i=0;i<data.length;i++){
+        const v = (data[i] - 128) / 128;
+        sum += v*v;
+      }
+      const rms = Math.sqrt(sum / data.length);
+      const pct = Math.min(100, Math.round(rms * 200)); // scale for UI
+      volLevel.style.width = pct + '%';
+      // update duration display while recording
+      if(startTime > 0){
+        const dur = ((Date.now() - startTime)/1000);
+        recDurationEl.textContent = dur.toFixed(1);
+      }
+      rafId = requestAnimationFrame(updateMeter);
+    }
+
+    function calcRMS(float32Array){
+      let sum = 0;
+      for(let i=0;i<float32Array.length;i++){ sum += float32Array[i]*float32Array[i]; }
+      return Math.sqrt(sum / float32Array.length);
+    }
+
+    /* ========== INITIAL UI STATES ========== */
+    document.getElementById('player').style.display = 'none';
+    document.getElementById('listeningQ').style.display = 'none';
+
+    /* ========== NOTES for integration ==========
+       - To set a specific correct answer for listening, modify `listeningAnswers.q1` above after uploading the audio,
+         or change the default before deployment.
+       - For production: consider removing local heuristics and integrate an ASR (speech-to-text) or grammar-check API
+         to provide richer automatic feedback (optional paid services).
+    ============================================ */
+  </script>
+</body>
+</html>
